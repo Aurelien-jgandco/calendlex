@@ -16,8 +16,8 @@ defmodule CalendlexWeb.EventTypeLive do
           |> assign(page_title: event_type.name)
           |> assign(bdd: Calendar.list_days())
 
-          {:ok, fetch(socket)}
-
+          #{:ok, fetch(socket)}
+          {:ok, socket, temporary_assigns: [time_slots: []]}
 
       {:error, :not_found} ->
         {:ok, socket, layout: {CalendlexWeb.LayoutView, "not_found.html"}}
