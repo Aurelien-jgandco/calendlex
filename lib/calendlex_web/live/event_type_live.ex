@@ -7,6 +7,7 @@ defmodule CalendlexWeb.EventTypeLive do
 
   @impl LiveView
   def mount(%{"event_type_slug" => slug}, _session, socket) do
+    Calendar.subscribe()
     case Calendlex.get_event_type_by_slug(slug) do
       {:ok, event_type} ->
         socket =
@@ -15,12 +16,18 @@ defmodule CalendlexWeb.EventTypeLive do
           |> assign(page_title: event_type.name)
           |> assign(bdd: Calendar.list_days())
 
-        {:ok, socket, temporary_assigns: [time_slots: []]}
+          {:ok, fetch(socket)}
+
 
       {:error, :not_found} ->
         {:ok, socket, layout: {CalendlexWeb.LayoutView, "not_found.html"}}
     end
   end
+
+  defp fetch(socket) do
+    assign(socket, temporary_assigns: [time_slots: []])
+  end
+
 
   @impl LiveView
   def handle_params(params, _uri, socket) do
@@ -60,10 +67,10 @@ defmodule CalendlexWeb.EventTypeLive do
     list = Calendar.list_days()
     if EventType.see_reserve_time(list, date, time) do
       Calendar.delete_day_by_date(%{date: date, time: time})
-      {:noreply, socket}
+      {:noreply, fetch(socket)}
     else
       Calendar.create_day(%{date: date, time: time})
-      {:noreply, socket}
+      {:noreply, fetch(socket)}
     end
 
 

@@ -27,8 +27,9 @@ defmodule Calendlex.Calendar do
           select: d
 
           day = Repo.all(query)
-          IO.inspect(day, label: "DAY")
           Repo.delete(hd(day))
+          |> broadcast([:day, :deleted])
+
   end
 
   @doc """
@@ -63,6 +64,7 @@ defmodule Calendlex.Calendar do
     %Day{}
     |> Day.changeset(attrs)
     |> Repo.insert()
+    |> broadcast([:day, :created])
   end
 
   @doc """
@@ -111,5 +113,16 @@ defmodule Calendlex.Calendar do
   """
   def change_day(%Day{} = day, attrs \\ %{}) do
     Day.changeset(day, attrs)
+  end
+
+
+  def subscribe do
+    Phoenix.PubSub.subscribe(Calendlex.PubSub, "days")
+  end
+
+  defp broadcast({:error, _reason} = error, _event), do: error
+  defp broadcast({:ok, day}, event) do
+    Phoenix.PubSub.broadcast(Calendlex.PubSub, "days", {event, day})
+    {:ok, day}
   end
 end
