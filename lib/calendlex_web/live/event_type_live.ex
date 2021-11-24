@@ -57,8 +57,15 @@ defmodule CalendlexWeb.EventTypeLive do
   end
 
   def handle_event("click", %{"date" => date, "time" => time}, socket) do
-    Calendar.create_day(%{date: date, time: time})
-    {:noreply, socket}
+    list = Calendar.list_days()
+    if EventType.see_reserve_time(list, date, time) do
+      Calendar.delete_day_by_date(%{date: date, time: time})
+      {:noreply, socket}
+    else
+      Calendar.create_day(%{date: date, time: time})
+      {:noreply, socket}
+    end
+
 
   end
 

@@ -21,6 +21,15 @@ defmodule Calendlex.Calendar do
     Repo.all(Day)
   end
 
+  def delete_day_by_date(%{date: date, time: time}) do
+    query = from d in Day,
+          where: d.date == ^date and d.time == ^time,
+          select: d
+
+          day = Repo.all(query)
+          IO.inspect(day, label: "DAY")
+          Repo.delete(hd(day))
+  end
 
   @doc """
   Gets a single day.
